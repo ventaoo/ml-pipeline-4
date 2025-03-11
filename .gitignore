@@ -7,3 +7,6 @@ __pycache__/
 *.pyd
 
 # /data
+
+# env ignore config file
+.env
