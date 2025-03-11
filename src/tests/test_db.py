@@ -3,7 +3,7 @@ import sys
 import pytest
 import pandas as pd
 
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 sys.path.insert(1, os.path.join(os.getcwd(), "src"))
 
@@ -44,13 +44,21 @@ def test_get_data_from_db(db_connection):
     assert isinstance(data, pd.DataFrame)
     assert not data.empty
 
-# 测试将预测结果存储到数据库
 def test_store_prediction_results(db_connection):
     """
     测试将预测结果存储到数据库
     """
-    predictions = [(1,), (2,)]  # 模拟预测结果
-    store_prediction_results(predictions, 'predictions')  # 修改为实际表名
-    query = "SELECT * FROM predictions;"
-    data = get_data_from_db(query)
-    assert len(data) >= 2  # 确保至少插入了2个结果
+    predictions = [("hello world", 1), ("machine learning", 2)]  # 模拟输入文本和预测结果
+    store_prediction_results(predictions, 'predictions')  
+
+    # 查询数据库获取插入的数据
+    query = "SELECT input_text, prediction_value FROM predictions ORDER BY created_at DESC LIMIT 2;"
+    with db_connection.connect() as conn:
+        result = conn.execute(text(query)).fetchall()
+
+    # 确保至少插入了 2 个结果
+    assert len(result) == 2  
+
+    # 校验插入的数据是否正确
+    assert result[0] == predictions[0]  # 最新插入的应该匹配
+    assert result[1] == predictions[1]

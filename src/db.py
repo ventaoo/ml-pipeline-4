@@ -28,6 +28,8 @@ CREATE TABLE jeopardy (
     " Answer" TEXT
 );
 
+DROP TABLE IF EXISTS predictions;
+
 CREATE TABLE predictions (
     id SERIAL PRIMARY KEY,        -- 自动递增的主键
     prediction_value INT NOT NULL, -- 存储预测值
@@ -52,29 +54,26 @@ def get_data_from_db(query: str) -> pd.DataFrame:
     data = pd.read_sql(query, engine)
     return data
 
-def store_prediction_results(predictions: List[Tuple[int]], table_name: str) -> None:
+def store_prediction_results(results: List[Tuple[str, int]], table_name: str) -> None:
     """
     将模型预测结果存储到数据库中
-    :param predictions: 模型预测结果的列表，每个元素为一个包含预测值的元组
+    :param results: 模型预测结果的列表，每个元素为一个 (输入文本, 预测值) 元组
     :param table_name: 表的名称，用于插入数据
     """
-    # 创建数据库连接（假设你有一个 create_connection() 函数用于创建连接）
     engine = create_connection()
-
     try:
-        # 构建插入语句（不需要插入id，id是自动递增的）
         with engine.connect() as conn:
-            insert_query = f"INSERT INTO {table_name} (prediction_value) VALUES (:prediction_value)"
-            
-            # 执行插入操作
-            for prediction in predictions:
-                conn.execute(text(insert_query), {"prediction_value": prediction[0]})
-            
-            # 提交事务
+            insert_query = f"""
+            INSERT INTO {table_name} (input_text, prediction_value)
+            VALUES (:input_text, :prediction_value)
+            """
+            for input_text, prediction in results:
+                conn.execute(text(insert_query), {
+                    "input_text": input_text,
+                    "prediction_value": prediction
+                })
             conn.commit()
-        
-        print(f"Successfully inserted {len(predictions)} predictions into {table_name}.")
-        
+        print(f"Successfully inserted {len(results)} records into {table_name}.")
     except Exception as e:
         print(f"Error while inserting predictions: {e}")
 
