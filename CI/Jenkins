@@ -31,7 +31,7 @@ pipeline {
         stage('Create and run docker container') {
             steps {
                 script {
-                    dir('ml_pipeline') {
+                    dir('ml-pipeline-2') {
                         // 尝试构建镜像，无论成功与否都启动容器
                         try {
                             sh 'docker-compose build'
@@ -46,10 +46,10 @@ pipeline {
         // 阶段 2：检查容器日志
         stage('Checkout container logs') {
             steps {
-                dir('ml_pipeline') {
+                dir('ml-pipeline-2') {
                     script {
                         def containerId = sh(
-                            script: 'docker ps -qf "name=^mle-pipeline"',
+                            script: 'docker ps -qf "name=^ml-pipeline-2"',
                             returnStdout: true
                         ).trim()
 
@@ -77,7 +77,7 @@ pipeline {
         // 阶段 4：推送镜像到 DockerHub
         stage('Push') {
             steps {
-                sh 'docker push zwttt/ml_pipeline'
+                sh 'docker push zwttt/ml-pipeline-2'
             }
         }
     }
