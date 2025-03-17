@@ -1,9 +1,31 @@
 services:
-   web:
-       build: .
-       command: bash -c "python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html"
-       ports:
-            - 8000:8000
-       image: zwttt/ml_pipeline_2:latest
-       env_file:
-            - .env
+     server:
+          build: .
+          command: bash -c "python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html"
+          ports:
+               - 8000:8000
+          image: zwttt/ml_pipeline_3:latest
+          environment:
+               POSTGRES_HOST: ${DB_HOST}
+               POSTGRES_PORT: ${DB_PORT}
+               POSTGRES_DB: ${DB_NAME}
+               POSTGRES_USER: ${DB_USER}
+               POSTGRES_PASSWORD: ${DB_PASSWORD}
+          depends_on:
+               postgres:
+                    condition: service_healthy
+     
+     postgres:
+          image: postgres:latest
+          ports:
+               - 5432:5432
+          environment:
+               POSTGRES_DB: ${DB_NAME}
+               POSTGRES_USER: ${DB_USER}
+               POSTGRES_PASSWORD: ${DB_PASSWORD}
+          healthcheck:
+               test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+               interval: 5s
+               timeout: 5s
+               retries: 5
+
