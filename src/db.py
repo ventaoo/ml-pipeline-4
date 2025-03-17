@@ -5,37 +5,15 @@ from sqlalchemy import create_engine, text
 from typing import List, Tuple
 
 # 加载环境变量
-load_dotenv()
+# load_dotenv()
 
 # 从环境变量中获取数据库连接信息
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('POSTGRES_HOST')
+DB_PORT = os.getenv('POSTGRES_PORT')
+DB_NAME = os.getenv('POSTGRES_DB')
+DB_USER = os.getenv('POSTGRES_USER')
+DB_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 
-"""
-DROP TABLE IF EXISTS jeopardy;
-
-
-CREATE TABLE jeopardy (
-    "Show Number" INTEGER,
-    " Air Date" DATE,
-    " Round" TEXT,
-    " Category" TEXT,
-    " Value" TEXT,
-    " Question" TEXT,
-    " Answer" TEXT
-);
-
-DROP TABLE IF EXISTS predictions;
-
-CREATE TABLE predictions (
-    id SERIAL PRIMARY KEY,        -- 自动递增的主键
-    prediction_value INT NOT NULL, -- 存储预测值
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 存储记录的时间戳
-);
-"""
 
 def create_connection():
     """
@@ -111,4 +89,13 @@ def load_csv_to_db(file_path: str, table_name: str) -> None:
 
 
 if __name__ == '__main__':
+    # Init database.
+    init_sql_path = './src/init_db.sql'
+    with create_connection().connect() as conn:
+        with open(init_sql_path) as f:
+            conn.execute(text(f.read()))
+        conn.commit()
+    print(f'Database init -> {init_sql_path}.')
+    
+    # Load csv to database
     load_csv_to_db('./data/JEOPARDY_CSV.csv', 'jeopardy')
