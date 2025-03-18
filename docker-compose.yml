@@ -5,9 +5,9 @@ services:
                dockerfile: ./Dockerfile.decryptor
           image: zwttt/decryptor:latest
           container_name: decryptor
-          command: bash -c "chmod +x ./decrypt_secrets_local.sh && ./decrypt_secrets_local.sh"
+          command: bash -c "chmod +x ./decrypt_secrets.sh && ./decrypt_secrets.sh"
           environment:
-               - VAULT_PASSWORD=ZwtzWtzwT
+               - VAULT_PASSWORD=${VAULT_PASSWORD}
 
      server:
           build: .
