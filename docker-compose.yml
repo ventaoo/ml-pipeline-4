@@ -4,7 +4,6 @@ services:
                context: .
                dockerfile: ./Dockerfile.decryptor
           image: zwttt/decryptor:latest
-          container_name: decryptor
           command: bash -c "chmod +x ./decrypt_secrets.sh && ./decrypt_secrets.sh"
           environment:
                - VAULT_PASSWORD=${VAULT_PASSWORD}
