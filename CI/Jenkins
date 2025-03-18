@@ -2,7 +2,9 @@ pipeline {
     agent any
     
     environment {
+        VAULT_PASSWORD = credentials('ansible-vault-password')
         DOCKERHUB_CREDS=credentials('ba7bf351-123e-409d-8d95-1c72fb78ffe4')  // 引用 Jenkins 凭据
+
         LC_ALL = "en_US.UTF-8"
         LANG    = "en_US.UTF-8"
         LANGUAGE = "en_US.UTF-8"
@@ -14,10 +16,21 @@ pipeline {
     }
 
     stages {
+        stage('Decrypt Secrets') {
+            steps {
+                script {
+                    // 确保必要的工具已安装
+                    sh 'sudo apt-get update && sudo apt-get install -y jq ansible'
+                    // 执行解密脚本
+                    sh 'chmod +x ./secrets/decrypt_secrets.sh && ./secrets/decrypt_secrets.sh'
+                }
+            }
+        }
+
         stage('Clone Repository') {
             steps {
                 cleanWs()
-                git branch: 'main', url: 'https://github.com/ventaoo/ml-pipeline-2.git'
+                git branch: 'main', url: 'https://github.com/ventaoo/ml-pipeline-3.git'
             }
         }
 
@@ -31,12 +44,25 @@ pipeline {
         stage('Create and run docker container') {
             steps {
                 script {
-                    dir('ml-pipeline-2') {
-                        // 尝试构建镜像，无论成功与否都启动容器
+                    dir('ml-pipeline-3') {
                         try {
-                            sh 'docker-compose build'
+                                sh """
+                                docker-compose build \
+                                    --build-arg DB_HOST=$DB_HOST \
+                                    --build-arg DB_PORT=$DB_PORT \
+                                    --build-arg DB_NAME=$DB_NAME \
+                                    --build-arg DB_USER=$DB_USER \
+                                    --build-arg DB_PASSWORD=$DB_PASSWORD
+                                """
                         } finally {
-                            sh 'docker-compose up -d'
+                                sh """
+                                docker-compose up -d \ 
+                                    --build-arg DB_HOST=$DB_HOST \
+                                    --build-arg DB_PORT=$DB_PORT \
+                                    --build-arg DB_NAME=$DB_NAME \
+                                    --build-arg DB_USER=$DB_USER \
+                                    --build-arg DB_PASSWORD=$DB_PASSWORD
+                                """
                         }
                     }
                 }
@@ -46,10 +72,10 @@ pipeline {
         // 阶段 2：检查容器日志
         stage('Checkout container logs') {
             steps {
-                dir('ml-pipeline-2') {
+                dir('ml-pipeline-3') {
                     script {
                         def containerId = sh(
-                            script: 'docker ps -qf "name=^ml-pipeline-2"',
+                            script: 'docker ps -qf "name=^ml-pipeline-3"',
                             returnStdout: true
                         ).trim()
 
@@ -77,7 +103,7 @@ pipeline {
         // 阶段 4：推送镜像到 DockerHub
         stage('Push') {
             steps {
-                sh 'docker push zwttt/ml-pipeline-2'
+                sh 'docker push zwttt/ml-pipeline-3:latest'
             }
         }
     }

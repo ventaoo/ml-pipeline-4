@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDS=credentials('ba7bf351-123e-409d-8d95-1c72fb78ffe4')  // 引用 Jenkins 凭据
+
+        POSTGRES_HOST=credentials('db-host')
+        POSTGRES_PORT=credentials('db-port')
+        POSTGRES_DB=credentials('db-name')
+        POSTGRES_USER=credentials('db-user')
+        POSTGRES_PASSWORD=credentials('db-password')
+
+        LC_ALL = "en_US.UTF-8"
+        LANG    = "en_US.UTF-8"
+        LANGUAGE = "en_US.UTF-8"
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+    }
+
+    stages {
+
+        stage('Login to DockerHub') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin'
+            }
+        }
+
+        stage('Pull image'){
+            steps{
+                sh '''
+                        docker pull zwttt/ml-pipeline-3:latest
+                '''
+            }
+        }
+
+        stage('Run container'){
+            steps{
+                withCredentials([
+                            string(credentialsId: 'db-host', variable: 'POSTGRES_HOST'),
+                            string(credentialsId: 'db-port', variable: 'POSTGRES_PORT'),
+                            string(credentialsId: 'db-name', variable: 'POSTGRES_DB'),
+                            string(credentialsId: 'db-user', variable: 'POSTGRES_USER'),
+                            string(credentialsId: 'db-password', variable: 'POSTGRES_PASSWORD')
+                ]) {
+                    sh '''
+                            docker run --name ml-pipeline-3 \
+                                -e POSTGRES_HOST=${POSTGRES_HOST} \
+                                -e POSTGRES_PORT=${POSTGRES_PORT} \
+                                -e POSTGRES_DB=${POSTGRES_DB} \
+                                -e POSTGRES_USER=${POSTGRES_USER} \
+                                -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
+                                -p 80:5556 \
+                                -d zwttt/ml-pipeline-3:latest
+                    '''
+                }
+            }
+        }
+	}
+
+    post {
+        always {
+            sh 'docker stop ml-pipeline-3 && docker logout'
+        }
+    }
+}
