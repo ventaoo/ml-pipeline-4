@@ -7,10 +7,12 @@ services:
           command: bash -c "chmod +x ./decrypt_secrets.sh && ./decrypt_secrets.sh"
           environment:
                - VAULT_PASSWORD=${VAULT_PASSWORD}
+          volumes:
+               - shared-data:/shared
 
      server:
           build: .
-          command: bash -c "python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html"
+          command: bash -c "chmod +x ./init_env.sh && ./init_env.sh && python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html"
           ports:
                - 8000:8000
           image: zwttt/ml-pipeline-3:latest
@@ -25,9 +27,12 @@ services:
                     condition: service_completed_successfully
                postgres:
                     condition: service_healthy
+          volumes:
+               - shared-data:/shared  # 共享 volume，能访问解密后的文件
      
      postgres:
           image: postgres:latest
+          command: bash -c "chmod +x ./init_env.sh && ./init_env.sh"
           ports:
                - 5432:5432
           depends_on:
@@ -41,4 +46,6 @@ services:
                interval: 5s
                timeout: 5s
                retries: 5
+          volumes:
+               - shared-data:/shared  # 共享 volume，能访问解密后的文件
 
