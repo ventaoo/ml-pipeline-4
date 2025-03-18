@@ -1,19 +1,17 @@
 import os
 import pandas as pd
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from typing import List, Tuple
 
-# 加载环境变量
-# load_dotenv()
-
-# 从环境变量中获取数据库连接信息
-DB_HOST = os.getenv('POSTGRES_HOST')
-DB_PORT = os.getenv('POSTGRES_PORT')
-DB_NAME = os.getenv('POSTGRES_DB')
-DB_USER = os.getenv('POSTGRES_USER')
-DB_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-
+"""
+@TDOO 需要修改解密的逻辑，这样操作将无法正确初始化数据库
+"""
+# load info.
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 
 def create_connection():
     """
