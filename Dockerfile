@@ -31,4 +31,4 @@ RUN apt update && apt install -y ansible
 # 确保 ansible 可用
 RUN ansible --version
 
-CMD ["bash", "-c", "./secrets/decrypt_secrets.sh"]
+CMD ["source", "-c", "./secrets/decrypt_secrets.sh"]
