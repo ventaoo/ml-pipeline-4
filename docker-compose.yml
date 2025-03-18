@@ -1,4 +1,14 @@
 services:
+     decryptor:
+          build: 
+               context: .
+               dockerfile: ./Dockerfile.decryptor
+          image: zwttt/decryptor:latest
+          container_name: decryptor
+          command: bash -c "chmod +x ./decrypt_secrets_local.sh && ./decrypt_secrets_local.sh"
+          environment:
+               - VAULT_PASSWORD=ZwtzWtzwT
+
      server:
           build: .
           command: bash -c "python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html"
@@ -12,6 +22,8 @@ services:
                DB_USER: ${DB_USER}
                DB_PASSWORD: ${DB_PASSWORD}
           depends_on:
+               decryptor:
+                    condition: service_completed_successfully
                postgres:
                     condition: service_healthy
      
@@ -19,6 +31,8 @@ services:
           image: postgres:latest
           ports:
                - 5432:5432
+          depends_on:
+               - decryptor
           environment:
                POSTGRES_DB: ${DB_NAME}
                POSTGRES_USER: ${DB_USER}

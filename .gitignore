@@ -13,5 +13,5 @@ __pycache__/
 
 # secrets
 secrets/secret
-secrets/db_info_local.json.enc
-secrets/decrypt_secrets_local.sh
+# secrets/db_info_local.json.enc
+# secrets/decrypt_secrets_local.sh

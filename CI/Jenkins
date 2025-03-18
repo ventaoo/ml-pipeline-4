@@ -16,17 +16,6 @@ pipeline {
     }
 
     stages {
-        stage('Decrypt Secrets') {
-            steps {
-                script {
-                    // 确保必要的工具已安装
-                    sh 'sudo apt-get update && sudo apt-get install -y jq ansible'
-                    // 执行解密脚本
-                    sh 'chmod +x ./secrets/decrypt_secrets.sh && ./secrets/decrypt_secrets.sh'
-                }
-            }
-        }
-
         stage('Clone Repository') {
             steps {
                 cleanWs()
@@ -56,12 +45,11 @@ pipeline {
                                 """
                         } finally {
                                 sh """
-                                docker-compose up -d \ 
-                                    --build-arg DB_HOST=$DB_HOST \
+                                docker-compose up --build-arg DB_HOST=$DB_HOST \
                                     --build-arg DB_PORT=$DB_PORT \
                                     --build-arg DB_NAME=$DB_NAME \
                                     --build-arg DB_USER=$DB_USER \
-                                    --build-arg DB_PASSWORD=$DB_PASSWORD
+                                    --build-arg DB_PASSWORD=$DB_PASSWORD -d
                                 """
                         }
                     }
