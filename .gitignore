@@ -10,3 +10,8 @@ __pycache__/
 
 # env ignore config file
 .env
+
+# secrets
+secrets/secret
+secrets/db_info_local.json.enc
+secrets/decrypt_secrets_local.sh

@@ -6,11 +6,11 @@ services:
                - 8000:8000
           image: zwttt/ml-pipeline-3:latest
           environment:
-               POSTGRES_HOST: ${DB_HOST}
-               POSTGRES_PORT: ${DB_PORT}
-               POSTGRES_DB: ${DB_NAME}
-               POSTGRES_USER: ${DB_USER}
-               POSTGRES_PASSWORD: ${DB_PASSWORD}
+               DB_HOST: ${DB_HOST}
+               DB_PORT: ${DB_PORT}
+               DB_NAME: ${DB_NAME}
+               DB_USER: ${DB_USER}
+               DB_PASSWORD: ${DB_PASSWORD}
           depends_on:
                postgres:
                     condition: service_healthy
