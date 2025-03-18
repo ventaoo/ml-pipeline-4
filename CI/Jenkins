@@ -36,20 +36,11 @@ pipeline {
                     dir('ml-pipeline-3') {
                         try {
                                 sh """
-                                docker-compose build \
-                                    --build-arg DB_HOST=$DB_HOST \
-                                    --build-arg DB_PORT=$DB_PORT \
-                                    --build-arg DB_NAME=$DB_NAME \
-                                    --build-arg DB_USER=$DB_USER \
-                                    --build-arg DB_PASSWORD=$DB_PASSWORD
+                                docker-compose build
                                 """
                         } finally {
                                 sh """
-                                docker-compose up --build-arg DB_HOST=$DB_HOST \
-                                    --build-arg DB_PORT=$DB_PORT \
-                                    --build-arg DB_NAME=$DB_NAME \
-                                    --build-arg DB_USER=$DB_USER \
-                                    --build-arg DB_PASSWORD=$DB_PASSWORD -d
+                                docker-compose up -d
                                 """
                         }
                     }
