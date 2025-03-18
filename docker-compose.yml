@@ -48,4 +48,5 @@ services:
                retries: 5
           volumes:
                - shared-data:/shared  # 共享 volume，能访问解密后的文件
-
+volumes:
+  shared-data:  # 定义共享的 volume
