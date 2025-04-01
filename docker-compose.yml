@@ -44,7 +44,7 @@ services:
 
      server:
           build: .
-          command: bash -c "chmod +x ./secrets/init_env.sh && ./secrets/init_env.sh && python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html && uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload"
+          command: bash -c "source /shared/.env && python src/db.py && python src/preprocess.py && python src/train.py && pytest src/tests/ --cov=src --cov-report=html && uvicorn src.api.app:app --host 0.0.0.0 --port 8000 --reload"
           ports:
                - 8000:8000
           image: zwttt/ml-pipeline-4:latest
@@ -67,7 +67,7 @@ services:
      
      postgres:
           image: postgres:latest
-          command: ["/bin/bash", "-c", "export $(jq -r 'to_entries|map(\"\\(.key)=\\(.value)\")|.[]' /shared/db_info.json) && docker-entrypoint.sh postgres"]
+          command: ["/bin/bash", "-c", "source /shared/.env && docker-entrypoint.sh postgres"]
           ports:
                - 5432:5432
           depends_on:

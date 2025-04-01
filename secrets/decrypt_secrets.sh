@@ -8,11 +8,10 @@ echo "$VAULT_PASSWORD" > $VAULT_PASSWORD_FILE
 # 解密配置文件
 ansible-vault decrypt $ENCRYPTED_FILE \
   --vault-password-file $VAULT_PASSWORD_FILE \
-  --output ./db_info.json
-
+  --output ./shared/.env
 
 # shared
-cp ./db_info.json /shared/db_info.json
+# cp ./db_info.json /shared/db_info.json
 
 # 检查解密是否成功
 if [ $? -ne 0 ]; then
@@ -22,9 +21,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # 导出环境变量（需安装 jq）
-export $(jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' ./db_info.json)
+# export $(jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' ./db_info.json)
 
 # 彻底删除临时文件
-shred -u $VAULT_PASSWORD_FILE ./db_info.json
+# shred -u $VAULT_PASSWORD_FILE ./db_info.json
 
 echo "=== End decryption ==="
