@@ -10,6 +10,7 @@ services:
                - ENCRYPTED_FILE=${ENCRYPTED_FILE}
           volumes:
                - shared-data:/shared
+          network_mode: host
 
      kafka:
           image: bitnami/kafka:latest
