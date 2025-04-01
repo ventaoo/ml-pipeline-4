@@ -8,7 +8,7 @@ echo "$VAULT_PASSWORD" > $VAULT_PASSWORD_FILE
 # 解密配置文件
 ansible-vault decrypt $ENCRYPTED_FILE \
   --vault-password-file $VAULT_PASSWORD_FILE \
-  --output ./shared/.env
+  --output /shared/.env
 
 # shared
 # cp ./db_info.json /shared/db_info.json
