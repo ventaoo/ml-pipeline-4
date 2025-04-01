@@ -3,8 +3,8 @@ pipeline {
     
     environment {
         VAULT_PASSWORD = credentials('ansible-vault-password')
+        ENCRYPTED_FILE = "./db_info.txt"
         DOCKERHUB_CREDS=credentials('ba7bf351-123e-409d-8d95-1c72fb78ffe4')  // 引用 Jenkins 凭据
-
         LC_ALL = "en_US.UTF-8"
         LANG    = "en_US.UTF-8"
         LANGUAGE = "en_US.UTF-8"
@@ -19,7 +19,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 cleanWs()
-                git branch: 'main', url: 'https://github.com/ventaoo/ml-pipeline-3.git'
+                git branch: 'main', url: 'https://github.com/ventaoo/ml-pipeline-4.git'
             }
         }
 
@@ -33,7 +33,7 @@ pipeline {
         stage('Create and run docker container') {
             steps {
                 script {
-                    dir('ml-pipeline-3') {
+                    dir('ml-pipeline-4') {
                         try {
                                 sh """
                                 docker-compose build
@@ -51,10 +51,10 @@ pipeline {
         // 阶段 2：检查容器日志
         stage('Checkout container logs') {
             steps {
-                dir('ml-pipeline-3') {
+                dir('ml-pipeline-4') {
                     script {
                         def containerId = sh(
-                            script: 'docker ps -qf "name=^ml-pipeline-3"',
+                            script: 'docker ps -qf "name=^ml-pipeline-4"',
                             returnStdout: true
                         ).trim()
 
@@ -82,7 +82,7 @@ pipeline {
         // 阶段 4：推送镜像到 DockerHub
         stage('Push') {
             steps {
-                sh 'docker push zwttt/ml-pipeline-3:latest'
+                sh 'docker push zwttt/ml-pipeline-4:latest'
             }
         }
     }

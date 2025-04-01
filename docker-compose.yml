@@ -66,14 +66,12 @@ services:
      
      postgres:
           image: postgres:latest
-          # command: bash -c "chmod +x ./secrets/init_env.sh && ./secrets/init_env.sh"
+          command: ["/bin/bash", "-c", "export $(jq -r 'to_entries|map(\"\\(.key)=\\(.value)\")|.[]' /shared/db_info.json) && docker-entrypoint.sh postgres"]
           ports:
                - 5432:5432
           depends_on:
-               - decryptor
-          # @TODO ? 可能可以直接volumes 传入env文件
-          # env_file:
-          #      - fileName
+               decryptor:
+                    condition: service_completed_successfully
           environment:
                POSTGRES_DB: ${DB_NAME}
                POSTGRES_USER: ${DB_USER}
