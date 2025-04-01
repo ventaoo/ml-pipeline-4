@@ -6,7 +6,7 @@ VAULT_PASSWORD_FILE=$(mktemp)
 echo "$VAULT_PASSWORD" > $VAULT_PASSWORD_FILE
 
 # 解密配置文件
-ansible-vault decrypt ./db_info.json.enc \
+ansible-vault decrypt $ENCRYPTED_FILE \
   --vault-password-file $VAULT_PASSWORD_FILE \
   --output ./db_info.json
 
