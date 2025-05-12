@@ -15,6 +15,7 @@ services:
                KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
                KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
                KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"  # 指定 Controller 监听器
+               KAFKA_TOPIC: "dev-model-results" 
                
                # 单节点集群优化
                KAFKA_CFG_NUM_PARTITIONS: 1

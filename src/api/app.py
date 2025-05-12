@@ -1,20 +1,17 @@
 import configparser
 import os
 import sys
-import json
 import joblib
 from datetime import datetime
 import numpy as np
 from fastapi import FastAPI
-from pydantic import BaseModel
 from gensim.models import Word2Vec
-from dotenv import load_dotenv
-from kafka import KafkaProducer
-from kafka import KafkaConsumer
 from threading import Thread
 from contextlib import asynccontextmanager
 
 sys.path.insert(1, os.path.join(os.getcwd(), "src"))
+from kafka_client.producer import KafkaProducerWrapper
+from kafka_client.consumer import KafkaConsumerWrapper
 
 from db import store_prediction_results
 from init_env import decrypt_with_ansible_lib
@@ -23,23 +20,6 @@ encrypted_file = os.getenv("DECRYPT_FILE_PATH")
 encrypted_password = os.getenv("DECRYPT_PASSWORD")
 output_file = os.getenv("OUTPUT_FILE")
 decrypt_with_ansible_lib(encrypted_file, encrypted_password, output_file)
-
-
-# 定义 Consumer 后台任务
-def consume_messages():
-    consumer = KafkaConsumer(
-        "model-results", # TODO 需要从参数获取
-        bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092"),
-        auto_offset_reset="earliest",
-        value_deserializer=lambda x: json.loads(x.decode("utf-8"))
-    )
-    for message in consumer:
-        print(f"Consumer 收到消息: {message.value}")
-        # 在此处添加业务逻辑（如保存到数据库）
-
-# 定义数据输入格式
-class InputData(BaseModel):
-    text: str
 
 # API 类
 class api_():
@@ -64,24 +44,27 @@ class api_():
         prediction = self.model.predict(input_data)
         return int(prediction)  # 确保返回整数
 
+# 定义Consumer回调函数
+def message_callback(message):
+    print(f"Consumer 收到消息: {message}")
+    store_prediction_results([(message["input"], message["prediction"])], "predictions")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 服务器启动!")
-     # 从环境变量读取 Kafka 配置（示例值：kafka:9092）
-    app.kafka_producer = KafkaProducer(
-        bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092"),
-        value_serializer=lambda v: json.dumps(v).encode("utf-8")
-    )
+    
+    # 初始化Producer
+    app.kafka_producer = KafkaProducerWrapper()
     print('Kafka producer 启动!')
 
-    # 启动 Consumer 线程
-    # TODO 单独consumer类
-    Thread(target=consume_messages, daemon=True).start()
+    # 启动Consumer线程
+    consumer = KafkaConsumerWrapper(message_callback)
+    Thread(target=consumer.start_consuming, daemon=True).start()
     print('Kafka consumer 启动!')
 
     yield
     
-    app.kafka_producer.close()
+    app.kafka_producer.producer.close()
     print("🛑 服务器关闭!")
 
 # 创建 FastAPI 应用
@@ -104,6 +87,6 @@ def predict(data: str):
         "prediction": prediction,
         "timestamp": datetime.now().isoformat()
     }
-    app.kafka_producer.send("model-results", value=message)
+    app.kafka_producer.send_message(message)
     
     return {"input": data, "prediction": prediction}
