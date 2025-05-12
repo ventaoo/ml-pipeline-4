@@ -17,21 +17,18 @@ from contextlib import asynccontextmanager
 sys.path.insert(1, os.path.join(os.getcwd(), "src"))
 
 from db import store_prediction_results
+from init_env import decrypt_with_ansible_lib
 
-# 加载 .env 文件中的数据库连接信息
-load_dotenv()
+encrypted_file = os.getenv("DECRYPT_FILE_PATH")
+encrypted_password = os.getenv("DECRYPT_PASSWORD")
+output_file = os.getenv("OUTPUT_FILE")
+decrypt_with_ansible_lib(encrypted_file, encrypted_password, output_file)
 
-# 获取数据库连接信息（从环境变量中读取）
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
 
 # 定义 Consumer 后台任务
 def consume_messages():
     consumer = KafkaConsumer(
-        "model-results",
+        "model-results", # TODO 需要从参数获取
         bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092"),
         auto_offset_reset="earliest",
         value_deserializer=lambda x: json.loads(x.decode("utf-8"))
@@ -78,6 +75,7 @@ async def lifespan(app: FastAPI):
     print('Kafka producer 启动!')
 
     # 启动 Consumer 线程
+    # TODO 单独consumer类
     Thread(target=consume_messages, daemon=True).start()
     print('Kafka consumer 启动!')
 
